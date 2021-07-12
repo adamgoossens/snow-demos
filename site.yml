@@ -2,14 +2,14 @@
   gather_facts: false
   connection: local
   tasks:
-		- name: tempfile for kubeconfig
-			tempfile:
-				state: file
-			register: kubeconfig
+    - name: tempfile for kubeconfig
+      tempfile:
+        state: file
+      register: kubeconfig
 
-		- name: generate local kubeconfig
-			copy:
-				dest: "{{ kubeconfig.path }}"
+    - name: generate local kubeconfig
+      copy:
+        dest: "{{ kubeconfig.path }}"
         content: |
           apiVersion: v1
           clusters:
