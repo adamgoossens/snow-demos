@@ -92,11 +92,12 @@
                 namespace: erdemo-operator-system
               spec:
                 channel: alpha
-                installPlanApproval: automatic
+                installPlanApproval: Automatic
                 name: erdemo-operator
                 source: erdemo-operators
                 sourceNamespace: openshift-marketplace
-        
+                startingCSV: erdemo-operator.v2.10.4
+
         - name: wait for subscription to reach AtLatestKnown status (5 min max)
           kubernetes.core.k8s_info:
             api_version: operators.coreos.com/v1alpha1
