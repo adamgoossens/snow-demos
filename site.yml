@@ -35,77 +35,83 @@
               password: {{ lookup('env', 'K8S_API_PASSWORD') }}
           {% endif %}
 
-    - name: create erdemo-operator-system
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: erdemo-operator-system
-          spec: {}
+    - module_defaults:
+        kubernetes.core.k8s:
+          kubeconfig: "{{ kubeconfig.path }}"
+        kubernetes.core.k8s_info:
+          kubeconfig: "{{ kubeconfig.path }}"
+      block:
+        - name: create erdemo-operator-system
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: v1
+              kind: Namespace
+              metadata:
+                name: erdemo-operator-system
+              spec: {}
 
-    - name: create CatalogSource for erdemo-operators
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: operators.coreos.com/v1alpha1
-          kind: CatalogSource
-          metadata:
+        - name: create CatalogSource for erdemo-operators
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: operators.coreos.com/v1alpha1
+              kind: CatalogSource
+              metadata:
+                name: erdemo-operators
+                namespace: openshift-marketplace
+              spec:
+                sourceType: grpc
+                image: quay.io/emergencyresponsedemo/erdemo-operator-catalog:2.10.4
+                displayName: Emergency Response Demo Operator
+                publisher: RedHatGov 
+
+        - name: wait for CatalogSource to reach ready
+          kubernetes.core.k8s_info:
+            api_version: operators.coreos.com/v1alpha1
+            kind: CatalogSource
             name: erdemo-operators
             namespace: openshift-marketplace
-          spec:
-            sourceType: grpc
-            image: quay.io/emergencyresponsedemo/erdemo-operator-catalog:2.10.4
-            displayName: Emergency Response Demo Operator
-            publisher: RedHatGov 
+          register: catalogsource
+          until:
+            - catalogsource.resources[0].status.connectionState is defined
+            - catalogsource.resources[0].status.connectionState.lastObservedState == 'READY'
+          delay: 10
+          retries: 10
 
-    - name: wait for CatalogSource to reach ready
-      kubernetes.core.k8s_info:
-        api_version: operators.coreos.com/v1alpha1
-        kind: CatalogSource
-        name: erdemo-operators
-        namespace: openshift-marketplace
-      register: catalogsource
-      until:
-        - catalogsource.resources[0].status.connectionState is defined
-        - catalogsource.resources[0].status.connectionState.lastObservedState == 'READY'
-      delay: 10
-      retries: 10
-
-    - name: subscribe to the ErDemo Operator
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: operators.coreos.com/v1alpha1
-          kind: Subscription
-          metadata:
-            name: erdemo-operator
+        - name: subscribe to the ErDemo Operator
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: operators.coreos.com/v1alpha1
+              kind: Subscription
+              metadata:
+                name: erdemo-operator
+                namespace: erdemo-operator-system
+              spec:
+                channel: alpha
+                installPlanApproval: automatic
+                name: erdemo-operator
+                source: erdemo-operators
+                sourceNamespace: openshift-marketplace
+        
+        - name: wait for subscription to reach AtLatestKnown status (5 min max)
+          kubernetes.core.k8s_info:
+            api_version: operators.coreos.com/v1alpha1
+            kind: Subscription
             namespace: erdemo-operator-system
-          spec:
-            channel: alpha
-            installPlanApproval: automatic
             name: erdemo-operator
-            source: erdemo-operators
-            sourceNamespace: openshift-marketplace
-    
-    - name: wait for subscription to reach AtLatestKnown status (5 min max)
-      kubernetes.core.k8s_info:
-        api_version: operators.coreos.com/v1alpha1
-        kind: Subscription
-        namespace: erdemo-operator-system
-        name: erdemo-operator
-      register: ersub
-      until:
-        - ersub.resources[0].status is defined
-        - "ersub.resources[0].status.state | lower == 'atlatestknown'"
-      delay: 10
-      retries: 30
+          register: ersub
+          until:
+            - ersub.resources[0].status is defined
+            - "ersub.resources[0].status.state | lower == 'atlatestknown'"
+          delay: 10
+          retries: 30
 
-    - name: create ErDemo
-      kubernetes.core.k8s:
-        definition:
-          apiVersion: apps.erdemo.io/v1alpha1
-          kind: ErDemo
-          metadata:
-            name: erdemo
-            namespace: erdemo-operator-system
-          spec:
-            mapToken: "{{ mapbox_token }}"
+        - name: create ErDemo
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: apps.erdemo.io/v1alpha1
+              kind: ErDemo
+              metadata:
+                name: erdemo
+                namespace: erdemo-operator-system
+              spec:
+                mapToken: "{{ mapbox_token }}"
