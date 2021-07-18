@@ -15,7 +15,7 @@
           clusters:
           - cluster:
               insecure-skip-tls-verify: true
-              server: {{ lookup('env', 'KUBERNETES_API_URL') }}
+              server: {{ lookup('env', 'K8S_API_URL') }}
             name: supervisor
           contexts:
           - context:
@@ -28,11 +28,11 @@
           users:
           - name: cluster-user
             user:
-          {% if lookup('env', 'KUBERNETES_API_TOKEN') %}
-              token: "{{ lookup('env', 'KUBERNETES_API_TOKEN') }}"
+          {% if lookup('env', 'K8S_API_TOKEN') %}
+              token: "{{ lookup('env', 'K8S_API_TOKEN') }}"
           {% else %}
-              username: {{ lookup('env', 'KUBERNETES_API_USERNAME') }}
-              password: {{ lookup('env', 'KUBERNETES_API_PASSWORD') }}
+              username: {{ lookup('env', 'K8S_API_USERNAME') }}
+              password: {{ lookup('env', 'K8S_API_PASSWORD') }}
           {% endif %}
 
     - name: create erdemo-operator-system
