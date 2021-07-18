@@ -35,6 +35,11 @@
               password: {{ lookup('env', 'K8S_API_PASSWORD') }}
           {% endif %}
 
+    - set_fact:
+        tmp: "{{ lookup('file', kubeconfig.path) }}"
+
+    - debug: var=tmp
+
     - module_defaults:
         kubernetes.core.k8s:
           kubeconfig: "{{ kubeconfig.path }}"
