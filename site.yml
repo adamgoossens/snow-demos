@@ -131,7 +131,7 @@
               spec:
                 mapToken: "{{ mapbox_token }}"
 
-        - name: wait for ErDemo to rollout (up to 30 minutes)
+        - name: wait for ErDemo to rollout (up to 45 minutes)
           kubernetes.core.k8s_info:
             api_version: apps.erdemo.io/v1alpha1
             kind: ErDemo
@@ -140,5 +140,6 @@
           register: erdemo
           until:
             - erdemo.resources[0].status is defined
+            - erdemo.resources[0].status.conditions[0].reason|lower == 'successful'
           delay: 30
-          retries: 60
+          retries: 90
