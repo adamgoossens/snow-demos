@@ -65,7 +65,7 @@
         - name: create CatalogSource for erdemo-operators
           kubernetes.core.k8s:
             definition:
-              apiVersion: operators.coreos.com/v1alpha1
+              apiVersion: operators.coreos.com/v1
               kind: CatalogSource
               metadata:
                 name: erdemo-operators
