@@ -35,11 +35,6 @@
               password: {{ lookup('env', 'K8S_API_PASSWORD') }}
           {% endif %}
 
-    - set_fact:
-        tmp: "{{ lookup('file', kubeconfig.path) }}"
-
-    - debug: var=tmp
-
     - module_defaults:
         kubernetes.core.k8s:
           kubeconfig: "{{ kubeconfig.path }}"
@@ -65,7 +60,7 @@
                 namespace: openshift-marketplace
               spec:
                 sourceType: grpc
-                image: quay.io/emergencyresponsedemo/erdemo-operator-catalog:2.10.4
+                image: quay.io/agoossen/erdemo-operator-catalog:2.10.4-adam
                 displayName: Emergency Response Demo Operator
                 publisher: RedHatGov 
 
@@ -96,7 +91,7 @@
                 name: erdemo-operator
                 source: erdemo-operators
                 sourceNamespace: openshift-marketplace
-                startingCSV: erdemo-operator.v2.10.4
+                startingCSV: erdemo-operator.v2.10.4-adam
 
         - name: wait for subscription to reach AtLatestKnown status (5 min max)
           kubernetes.core.k8s_info:
