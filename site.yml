@@ -126,5 +126,19 @@
               metadata:
                 name: erdemo
                 namespace: erdemo-operator-system
+                annotations:
+                  ansible.sdk.operatorframework.io/reconcile-period: 60m
               spec:
                 mapToken: "{{ mapbox_token }}"
+
+        - name: wait for ErDemo to rollout (up to 30 minutes)
+          kubernetes.core.k8s_info:
+            api_version: apps.erdemo.io/v1alpha1
+            kind: ErDemo
+            name: erdemo
+            namespace: erdemo-operator-system
+          register: erdemo
+          until:
+            - erdemo.resources[0].status is defined
+          delay: 30
+          retries: 60
