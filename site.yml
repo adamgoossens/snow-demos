@@ -181,21 +181,21 @@
           delay: 30
           retries: 90
 
-    - name: fetch route for Disaster Simulator
-      kubernetes.core.k8s_info:
-        api_version: route.openshift.io/v1
-        kind: Route
-        namespace: user1-er-demo
-        name: disaster-simulator
-      register: ds_route
+        - name: fetch route for Disaster Simulator
+          kubernetes.core.k8s_info:
+            api_version: route.openshift.io/v1
+            kind: Route
+            namespace: user1-er-demo
+            name: disaster-simulator
+          register: ds_route
 
-    - name: fetch route for Emergency Console
-      kubernetes.core.k8s_info:
-        api_version: route.openshift.io/v1
-        kind: Route
-        namespace: user1-er-demo
-        name: emergency-console
-      register: ec_route
+        - name: fetch route for Emergency Console
+          kubernetes.core.k8s_info:
+            api_version: route.openshift.io/v1
+            kind: Route
+            namespace: user1-er-demo
+            name: emergency-console
+          register: ec_route
 
     - when:
         - sc_req.record.request_state == 'in_process'
