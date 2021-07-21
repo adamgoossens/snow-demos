@@ -3,9 +3,9 @@
   connection: local
   module_defaults:
     snow_record:
-      username: "{{ servicenow_user }}"
-      password: "{{ servicenow_password }}"
-      instance: "{{ servicenow_instance }}"
+      username: "{{ snow_username }}"
+      password: "{{ snow_password }}"
+      instance: "{{ snow_instance }}"
   tasks:
     - name: tempfile for kubeconfig
       tempfile:
