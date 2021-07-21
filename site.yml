@@ -48,8 +48,11 @@
         table: sc_request
       register: sc_req
 
+    - debug: var=sc_req
+
     - when:
-        - sc_req.record.request_state == 'requested'
+        - sc_req.record.request_state == 'in_process'
+        - sc_req.record.stage == 'requested'
       block:
         - name: add a comment to the request
           snow_record:
@@ -67,16 +70,7 @@
                 Once it's complete we will advise you here on this request.
 
                 Thank you.
-
-        - name: update state to in_process and approved
-          snow_record:
-            state: present
-            number: "{{ snow_request }}"
-            table: sc_request
-            data:
-              request_state: 'in_process'
-              approval: 'approved'
-              stage: 'fulfillment'
+              stage: fulfillment
 
     - module_defaults:
         kubernetes.core.k8s:
@@ -187,6 +181,22 @@
           delay: 30
           retries: 90
 
+    - name: fetch route for Disaster Simulator
+      kubernetes.core.k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        namespace: user1-er-demo
+        name: disaster-simulator
+      register: ds_route
+
+    - name: fetch route for Emergency Console
+      kubernetes.core.k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        namespace: user1-er-demo
+        name: emergency-console
+      register: ec_route
+
     - when:
         - sc_req.record.request_state == 'in_process'
       block:
@@ -201,13 +211,12 @@
 
                 We have completed the rollout of the Emergency Response dashboard.
 
-                You can find it here: https://foo.bar
+                Emergency Response Dashboard: https://{{ ec_route.spec.host }}
 
-        - name: update state to closed_complete
-          snow_record:
-            state: present
-            number: "{{ snow_request }}"
-            table: sc_request
-            data:
+                Disaster Simulator: http://{{ds_route.spec.host}}
+
+                Incident Command Credentials: incident_commander / r3dh4t1!
+
+                Thanks.
               request_state: 'closed_complete'
               stage: 'closed_complete'
