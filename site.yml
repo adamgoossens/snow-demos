@@ -211,9 +211,9 @@
 
                 We have completed the rollout of the Emergency Response dashboard.
 
-                Emergency Response Dashboard: https://{{ ec_route.spec.host }}
+                Emergency Response Dashboard: https://{{ ec_route.resources[0].spec.host }}
 
-                Disaster Simulator: http://{{ds_route.spec.host}}
+                Disaster Simulator: http://{{ds_route.resources[0].spec.host}}
 
                 Incident Command Credentials: incident_commander / r3dh4t1!
 
