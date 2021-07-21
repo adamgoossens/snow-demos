@@ -42,9 +42,6 @@
 
     - name: lookup the ServiceNow request
       snow_record:
-        username: "{{ servicenow_user }}"
-        password: "{{ servicenow_password }}"
-        instance: "dev93133"
         state: present
         number: "{{ snow_request }}"
         lookup_field: number
