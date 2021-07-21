@@ -1,6 +1,11 @@
 - hosts: localhost
   gather_facts: false
   connection: local
+  module_defaults:
+    snow_record:
+      username: "{{ servicenow_user }}"
+      password: "{{ servicenow_password }}"
+      instance: "{{ servicenow_instance }}"
   tasks:
     - name: tempfile for kubeconfig
       tempfile:
@@ -34,6 +39,47 @@
               username: {{ lookup('env', 'K8S_API_USERNAME') }}
               password: {{ lookup('env', 'K8S_API_PASSWORD') }}
           {% endif %}
+
+    - name: lookup the ServiceNow request
+      snow_record:
+        username: "{{ servicenow_user }}"
+        password: "{{ servicenow_password }}"
+        instance: "dev93133"
+        state: present
+        number: "{{ snow_request }}"
+        lookup_field: number
+        table: sc_request
+      register: sc_req
+
+    - when:
+        - sc_req.record.request_state == 'requested'
+      block:
+        - name: add a comment to the request
+          snow_record:
+            state: present
+            number: "{{ snow_request }}"
+            table: sc_request
+            data:
+              comments: |
+                Hi,
+
+                We have commenced provisioning of your Emergency Response Service.
+
+                This process takes approximately 30-45 minutes.
+
+                Once it's complete we will advise you here on this request.
+
+                Thank you.
+
+        - name: update state to in_process and approved
+          snow_record:
+            state: present
+            number: "{{ snow_request }}"
+            table: sc_request
+            data:
+              request_state: 'in_process'
+              approval: 'approved'
+              stage: 'fulfillment'
 
     - module_defaults:
         kubernetes.core.k8s:
@@ -143,3 +189,28 @@
             - erdemo.resources[0].status.conditions[0].reason|lower == 'successful'
           delay: 30
           retries: 90
+
+    - when:
+        - sc_req.record.request_state == 'in_process'
+      block:
+        - name: add a comment to the request
+          snow_record:
+            state: present
+            number: "{{ snow_request }}"
+            table: sc_request
+            data:
+              comments: |
+                Hi,
+
+                We have completed the rollout of the Emergency Response dashboard.
+
+                You can find it here: https://foo.bar
+
+        - name: update state to closed_complete
+          snow_record:
+            state: present
+            number: "{{ snow_request }}"
+            table: sc_request
+            data:
+              request_state: 'closed_complete'
+              stage: 'closed_complete'
